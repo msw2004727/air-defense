@@ -25,6 +25,8 @@ Game.CFG = {
   TB_ROWS: 6,
 
   BARREL_MAX_HP: 5,
+
+  MAX_SCALE: 3,
 };
 
 Game.TERRAIN_COLS = Math.ceil(Game.CFG.W / Game.CFG.TILE_SIZE);

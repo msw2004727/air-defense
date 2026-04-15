@@ -40,6 +40,13 @@ canvas {
   cursor: crosshair;
 }
 
+@media (min-width: 900px) {
+  canvas {
+    border: 1px solid rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 40px rgba(0, 255, 0, 0.05);
+  }
+}
+
 /* === HUD Cards === */
 #ui-overlay {
   position: absolute;

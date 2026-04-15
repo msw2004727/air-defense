@@ -69,7 +69,7 @@
           });
         }
 
-        G.playSound('shoot');
+        G.playSound('shoot', { bullets: totalBullets });
       }
 
       // 移動子彈

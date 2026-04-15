@@ -41,32 +41,71 @@
 
   // 音效定義
   var sounds = {
-    // 砲擊：短促有力的方波掃頻 + 噪音衝擊
-    shoot: function() {
+    // 砲擊：子彈越多音效越厚實（散彈兵增益）
+    shoot: function(opts) {
       var t = ctx.currentTime;
+      var count = (opts && opts.bullets) ? opts.bullets : 1;
 
-      // 主音：方波掃頻 800→200Hz
+      // 縮放參數：對數增長，避免爆音
+      var layers = Math.min(Math.floor((count - 1) / 2), 3); // 0~3 層
+      var volMul = 1 + Math.log(Math.max(count, 1)) * 0.25;
+      if (volMul > 1.6) volMul = 1.6;
+      var startFreq = 800 + layers * 80;
+
+      // 主音：方波掃頻
       var osc = ctx.createOscillator();
       var gain = ctx.createGain();
       osc.type = 'square';
-      osc.frequency.setValueAtTime(800, t);
-      osc.frequency.exponentialRampToValueAtTime(200, t + 0.05);
-      gain.gain.setValueAtTime(0.12, t);
+      osc.frequency.setValueAtTime(startFreq, t);
+      osc.frequency.exponentialRampToValueAtTime(200, t + 0.07);
+      gain.gain.setValueAtTime(0.12 * volMul, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
       osc.connect(gain);
       gain.connect(masterGain);
       osc.start(t);
       osc.stop(t + 0.07);
 
-      // 噪音層：模擬火藥爆發
-      var noise = createNoise(0.04);
+      // 失諧振盪器層：每層 +/- detune，製造厚實合唱效果
+      for (var i = 0; i < layers; i++) {
+        var detune = (i + 1) * 15;
+
+        var oscP = ctx.createOscillator();
+        var gainP = ctx.createGain();
+        oscP.type = 'square';
+        oscP.frequency.setValueAtTime(startFreq, t);
+        oscP.frequency.exponentialRampToValueAtTime(200, t + 0.07);
+        oscP.detune.setValueAtTime(detune, t);
+        gainP.gain.setValueAtTime(0.06 * volMul, t);
+        gainP.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+        oscP.connect(gainP);
+        gainP.connect(masterGain);
+        oscP.start(t);
+        oscP.stop(t + 0.07);
+
+        var oscN = ctx.createOscillator();
+        var gainN = ctx.createGain();
+        oscN.type = 'square';
+        oscN.frequency.setValueAtTime(startFreq, t);
+        oscN.frequency.exponentialRampToValueAtTime(200, t + 0.07);
+        oscN.detune.setValueAtTime(-detune, t);
+        gainN.gain.setValueAtTime(0.06 * volMul, t);
+        gainN.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+        oscN.connect(gainN);
+        gainN.connect(masterGain);
+        oscN.start(t);
+        oscN.stop(t + 0.07);
+      }
+
+      // 噪音層：隨子彈數加長加厚
+      var noiseDur = 0.04 + layers * 0.015;
+      var noise = createNoise(noiseDur);
       var nGain = ctx.createGain();
-      nGain.gain.setValueAtTime(0.08, t);
-      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+      nGain.gain.setValueAtTime(0.08 * volMul, t);
+      nGain.gain.exponentialRampToValueAtTime(0.001, t + noiseDur);
       noise.connect(nGain);
       nGain.connect(masterGain);
       noise.start(t);
-      noise.stop(t + 0.04);
+      noise.stop(t + noiseDur);
     },
 
     // 命中：清脆的三角波下滑
@@ -145,10 +184,10 @@
     },
   };
 
-  G.playSound = function(type) {
+  G.playSound = function(type, opts) {
     if (!ensureRunning()) return;
     var fn = sounds[type];
-    if (fn) fn();
+    if (fn) fn(opts || {});
   };
 
   // 音量控制 API
