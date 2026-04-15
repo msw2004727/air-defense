@@ -154,7 +154,7 @@ canvas {
 
 #game-over-screen h1 {
   font-family: monospace;
-  font-size: 36px;
+  font-size: clamp(26px, 5vw, 36px);
   color: #f44;
   letter-spacing: 4px;
 }
@@ -162,7 +162,9 @@ canvas {
 #game-over-screen p {
   color: #aaa;
   font-family: monospace;
-  font-size: 16px;
+  font-size: clamp(13px, 3vw, 16px);
+  max-width: 520px;
+  text-align: center;
 }
 
 /* === Start Screen === */
@@ -180,7 +182,7 @@ canvas {
 
 #start-screen h1 {
   font-family: monospace;
-  font-size: 32px;
+  font-size: clamp(24px, 5vw, 32px);
   color: #4a0;
   letter-spacing: 3px;
 }
@@ -188,7 +190,7 @@ canvas {
 /* === Start Screen Instructions === */
 .intro {
   width: 95%;
-  max-width: 96vw;
+  max-width: 520px;
   max-height: 55vh;
   overflow-y: auto;
   display: flex;
