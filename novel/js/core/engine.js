@@ -44,16 +44,26 @@
     }
   };
 
+  // 固定時間步長：物理以 60fps 模擬，繪製以螢幕原生刷新率
+  var FIXED_DT = 1000 / 60;  // 16.67ms per tick
+
   GameEngine.prototype.start = function() {
     var self = this;
+    var accumulator = 0;
+
     function loop(now) {
       if (state.gameState === 'playing') {
-        var dt = now - state.lastTime;
+        var elapsed = now - state.lastTime;
         state.lastTime = now;
-        // 夾限 dt 防止首幀暴衝與切頁回來的大跳躍
-        if (dt > 50) dt = 50;
-        state.gameTime += dt;
-        self.update(dt);
+        // 夾限防止切頁回來的大跳躍
+        if (elapsed > 200) elapsed = 200;
+
+        accumulator += elapsed;
+        while (accumulator >= FIXED_DT) {
+          state.gameTime += FIXED_DT;
+          self.update(FIXED_DT);
+          accumulator -= FIXED_DT;
+        }
       }
       var ctx = state.ctx;
       ctx.save();
